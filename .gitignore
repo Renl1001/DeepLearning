@@ -102,3 +102,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+MNIST/MNIST_data/
+network/models/
+network/simple-examples/
