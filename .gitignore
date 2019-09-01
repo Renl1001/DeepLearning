@@ -106,3 +106,7 @@ venv.bak/
 MNIST/MNIST_data/
 network/models/
 network/simple-examples/
+demo/Text/data/cnews
+demo/object_detection/faster_rcnn_resnet50_coco_2018_01_28
+demo/object_detection/ssd_mobilenet_v1_coco_2017_11_17
+*.tar

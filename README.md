@@ -1391,3 +1391,177 @@ class PTBModel(object):
 ![](images/027.png)
 
 实验使用的GPU是GeForce RTX 2070。如上图，训练的速度可以达到30000单词每秒，同时在最后一个epoch中，训练集上可达41.29的perplexity，验证集和测试集上也可以达到120.362和114.323的perplexity。
+
+## 3. Demo
+
+### 3.1 针对文本的分类
+
+#### 3.1.1 运行环境说明
+
+- 系统环境
+
+Windows10下的Ubuntu18.04子系统
+
+- 语言环境
+
+Python 3.7.0
+
+- 编译器
+
+Vscode
+
+#### 3.1.2 数据准备
+
+本次实验使用的是THUCTC数据集，该数据集是由清华大学自然语言处理实验室推出的中文文本分类工具包，能够自动高效地实现用户自定义的文本分类语料的训练、评测、分类功能。该数据集包含十四类新闻文本：'体育', '财经', '房产', '家居', '教育', '科技', '时尚', '时政', '游戏', '娱乐', '彩票', '股票','社会', '星座'。其文件结构如下：
+
+```
+ Train(Test)\
+     类别1\
+         1.txt
+         2.txt
+         3.txt
+         ...
+         n.txt
+     类别2\
+         ...
+     ...
+     类别n\
+         ...
+```
+
+由于数据量较大，实验只使用部分数据，利用`prepare.py`文件将每种类别的新闻文本提取出1000个，并按照8：1：1的比例分成训练数据、验证数据和测试数据。
+
+提取后的部分训练数据如下图：
+
+![](images/28.png)
+
+#### 3.1.3 网络结构
+
+输入数据首先进入一层词嵌入层，然后是一维卷积，接下来进行最大池化，最后通过两个全连接层连接到十四个输出，并利用softmax进行分类预测。具体模型如下图所示：
+
+![](images/29.png)
+
+#### 3.1.4 实验结果与截图
+
+总共训练10组epoch，训练的信息和如下图所示：
+
+![](images/30.png)
+
+![](images/31.png)
+
+可以看到通过训练，模型预测的准确率在逐步提高，并且在验证集上，也能得到90%左右的准确率。
+
+利用训练完成的模型在测试集上进行预测，也能得到91.43%的准确率，并且每项分类的召回率和f1-score也都在0.9左右。
+
+![](images/32.png)
+
+### 3.2 运动目标的检测和分类
+
+#### 3.2.1 运行环境说明
+
+- 系统环境
+
+Windows10下的Ubuntu18.04子系统
+
+- 语言环境
+
+Python 3.7.0
+
+- 编译器
+
+Vscode
+
+#### 3.2.2 数据准备
+
+本次教程使用的是coco数据集。MS COCO的全称是Microsoft Common Objects in Context，起源于微软于2014年出资标注的Microsoft COCO数据集，与ImageNet竞赛一样，被视为是计算机视觉领域最受关注和最权威的比赛之一。 COCO数据集是一个大型的、丰富的物体检测，分割和字幕数据集。这个数据集以scene understanding为目标，主要从复杂的日常场景中截取，图像中的目标通过精确的segmentation进行位置的标定。图像包括91类目标，328,000影像和2,500,000个label。目前为止有语义分割的最大数据集，提供的类别有80 类，有超过33 万张图片，其中20 万张有标注，整个数据集中个体的数目超过150 万个。
+
+![](images/33.png)
+
+#### 3.2.3 网络结构
+
+- 分类模型：
+
+Resnet是ImageNet竞赛中分类问题比较好的网络，它有多种结构形式，有Resnet-34，Resnet-50， Resnet-101， Resnet-152. 
+
+![](images/34.png)
+
+该网络解决了梯度爆炸的问题，是的层数可以很深，极大的提高了分类的效率，并且可以使用ImageNet数据集预训练的参数实现迁移学习，不用从头开始训练分类模型。所以本次教程使用了Resnet50作为分类的网络模型。
+
+- 检测模型：
+
+检测模型选用的Faster RCNN。经过RCNN和Fast RCNN的积淀，Ross B. Girshick在2016年提出了新的Faster RCNN，在结构上，Faster RCN已经将特征抽取(feature extraction)，proposal提取，bounding box regression(rect refine)，classification都整合在了一个网络中，使得综合性能有较大提高，在检测速度方面尤为明显。其模型图如下所示：
+
+![](images/35.png)
+
+#### 3.2.4 实验步骤
+
+1. 加载训练数据
+2. 在训练好的分类模型上训练RPN网络
+3. 利用2训练好的RPN网络，收集proposals
+4. 第一次训练Fast RCNN网络
+5. 第二次训练RPN网络
+6. 利用5训练好的模型收集proposals
+7. 训练Fast RCNN网络，并保存模型
+8. 加载视频
+9. 加载训练好的模型
+10. 将视频逐帧进行预测
+11. 将每一帧预测后的图片拼接成新的视频
+
+#### 3.2.5 实验结果与截图
+
+由于数据比较大，训练时间比较长，本次实验直接使用了已经训练好的模型来对运动物体进行检测与分类。
+
+![](images/36.png)
+
+加载好模型后，对视频进行检测，检测结果如下：
+
+![](images/video1_out.gif)
+
+可以看到，模型的检测结果还是比较准确。
+
+### 4. 总结
+
+通过本次教程，学习了Tensorflow深度学习框架的环境搭建，并且通过示例程序，了解了Tensorflow的语法以及从模型搭建到训练的流程。最后实现了两个简单的demo，进一步学习了Tensorflow框架。TensorFlow框架是由谷歌开发、维护，因此可以保障支持、开发的持续性。背靠大公司，并且开源进行维护，形成了巨大、活跃的社区，是目前使用人数最多的深度学习框架，通过本次教程发现了它的强大与易用，以后会继续学习使用。
+
+## 5. 参考文献
+
+[1] 黄文坚．TensorFlow实战[J]．电子工业出版社，2017.
+
+[2] Strange dream . Ubuntu 安装Anaconda [EB/OL]. https://zhuanlan.zhihu.com/p/36053560, 2018.
+
+[3]  背包客w. linux下使用Anaconda安装tensorflow-gpu及keras [EB/OL]. https://blog.csdn.net/weixin_39954229/article/details/79961172, 2018.
+
+[4]  缺省之名. 通俗理解word2vec [EB/OL]. https://www.jianshu.com/p/471d9bfbd72f, 2018.
+
+[5]  孙茂松，李景阳，郭志芃，赵宇，郑亚斌，司宪策，刘知远. THUCTC：一个高效的中文文本分类工具包. 2016.
+
+[6]  tuzixini. Opencv-Python(二) 读取, 写入/出视频 [EB/OL]. https://blog.csdn.net/tuzixini/article/details/78847942, 2017.
+
+[7]  AiTechYun. 使用Tensorflow对象检测在安卓手机上“寻找”皮卡丘 [EB/OL]. https://cloud.tencent.com/developer/article/1052201, 2018.
+
+[8]  潇湘_AQ. Microsoft COCO 数据集 [EB/OL]. https://blog.csdn.net/u012905422/article/details/52372755, 2016.
+
+[9]  小小将. 你必须要知道CNN模型：ResNet [EB/OL]. https://zhuanlan.zhihu.com/p/31852747, 2018.
+
+[10]   BigCowPeking. faster-RCNN算法原理详解 [EB/OL]. https://blog.csdn.net/wfei101/article/details/76400672, 2017.
+
+[11]  白裳. 一文读懂Faster RCNN [EB/OL]. https://zhuanlan.zhihu.com/p/31426458, 2019.
+
+[12]  ZONG_XP. TensorFlow之目标检测API接口调试（超详细） [EB/OL].https://blog.csdn.net/zong596568821xp/article/details/82015126, 2018.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
